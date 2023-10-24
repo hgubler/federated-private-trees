@@ -1,21 +1,25 @@
+import numpy as np
+
 class FederatedPrivateQuantiles:
-    def __init__(self, q, K, n):
-        self.q = q
-        self.K = K
-        self.n = n
-        self.z = [0] * len(q)
+    def __init__(self, q, x, n):
+        self.q = q # vector of quantile probbilities to compute
+        #self.K = K # number of clients
+        self.x = x # vector of data points
+        self.n = n # total number of data points
+        self.z = [0] * len(q) # vector of quantiles
 
     def middlepoint(self, x_min, x_max, q_prime):
         mid = (x_min + x_max) / 2
-        left = 0  # Replace with your value or calculation
+        left = np.count_nonzero(self.x < mid)
         a = left / self.n
 
         if len(q_prime) == 1:
-            right = 0  # Replace with your value or calculation
+            right = np.count_nonzero(self.x >= mid)  # Replace with your value or calculation
             b = right / self.n
 
             if a <= q_prime[0] <= b:
-                self.z[self.q.index(q_prime[0])] = mid
+                self.z[np.where(q == q_prime[0])[0][0]] = mid
+                self.z
                 return
 
             if q_prime[0] <= a:
@@ -26,30 +30,28 @@ class FederatedPrivateQuantiles:
                 self.middlepoint(mid, x_max, q_prime)
                 return
 
-        z_prime = [0] * len(q_prime)
         midreach = False
-        midind = 0
-
-        for i in range(len(self.q)):
-            self.z[i] = left / self.n
-
-            if not midreach:
-                if self.z[i] >= a:
-                    midreach = True
-                    midind = i
+        midind = -1
+        while not midreach:
+            midind += 1
+            if midind == len(q_prime):
+                break
+            midreach = q_prime[midind] >= a 
 
         self.middlepoint(x_min, mid, q_prime[:midind])
         self.middlepoint(mid, x_max, q_prime[midind:])
+        return
 
     def compute_quantiles(self):
-        self.middlepoint(0, 1, self.q)
+        self.middlepoint(self.x.min(), self.x.max(), self.q)
         return self.z
 
 # Example usage:
-q = [0.1, 0.5, 0.9]
-K = 10
-n = 1000
+q = np.array([0.25, 0.5, 0.75])
+# create x vector with numbers from 1 to 100
+x = np.array([i for i in range(1, 101)])
+n = x.shape[0]
 
-quantile_calculator = FederatedPrivateQuantiles(q, K, n)
+quantile_calculator = FederatedPrivateQuantiles(q, x, n)
 result = quantile_calculator.compute_quantiles()
 print(result)
