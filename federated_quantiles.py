@@ -15,7 +15,7 @@ class FederatedPrivateQuantiles:
 
         if len(q_prime) == 1:
             right = np.count_nonzero(self.x >= mid)  # Replace with your value or calculation
-            b = right / self.n
+            b = 1 - right / self.n
 
             if a <= q_prime[0] <= b:
                 self.z[np.where(q == q_prime[0])[0][0]] = mid
@@ -47,7 +47,7 @@ class FederatedPrivateQuantiles:
         return self.z
 
 # Example usage:
-q = np.array([0.25, 0.5, 0.75])
+q = np.array([0.1, 0.2, 0.3, 0.5, 0.66, 0.8, 0.95])
 # create x vector with numbers from 1 to 100
 x = np.array([i for i in range(1, 101)])
 n = x.shape[0]
