@@ -84,13 +84,12 @@ class FederatedPrivateQuantiles:
         # assert that quantiles are sorted
         assert np.all(np.diff(self.q) > 0), "Quantiles need to be sorted."
         self.middlepoint(self.x.min(), self.x.max(), self.q)
-        return self.z
+        return self
 
 # Example usage:
 # create x vector with numbers from 1 to 100
 x = np.array([i for i in range(1, 101)])
-n = x.shape[0]
-q = np.array([i / n for i in range(0, n + 1, 8)])
+q = np.array([i / len(x) for i in range(0, len(x), 8)])
 
 quantile_calculator = FederatedPrivateQuantiles(q, x)
 quantile_calculator.compute_quantiles()
