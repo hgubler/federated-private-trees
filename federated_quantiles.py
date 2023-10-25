@@ -5,21 +5,21 @@ class FederatedPrivateQuantiles:
     A class for computing quantiles of a dataset using the federated private quantiles algorithm.
 
     Attributes:
-        q (numpy.ndarray): A vector of quantile probabilities to compute.
+        q (numpy.ndarray): A sorted vector of quantile probabilities. Need to be of the form i/n, i between 0 and n.
         x (numpy.ndarray): A vector of data points.
         n (int): The total number of data points.
-        z (list): A vector of quantiles.
-        left_points_counter: A counter of how many times we compute left points of middle point.
+        z (list): A vector of quantiles to compute.
+        left_points_counter: A counter of how many datapoints where looked at during quantile computation.
 
     Methods:
         middlepoint: A recursive function that computes the quantiles using the federated private quantiles algorithm.
-        compute_quantiles: A function that computes the quantiles and returns the result.
+        compute_quantiles: A function that calls middlepoint to compute the quantiles and return the result.
     """
-    def __init__(self, q, x, n):
+    def __init__(self, q, x):
         self.q = q # vector of quantile probbilities to compute
         #self.K = K # number of clients
         self.x = x # vector of data points
-        self.n = n # total number of data points
+        self.n = len(x) # total number of data points
         self.z = [0] * len(q) # vector of quantiles
         self.left_points_counter = 0 # counter of how many times we compute left points 
         # (hence how many times we exchange information between clients)
@@ -54,15 +54,6 @@ class FederatedPrivateQuantiles:
                 self.z[np.where(q == q_prime[0])[0][0]] = mid
                 return
 
-            if q_prime[0] < a: # if the quantile of the middle point is smaller than the one we want to compute,
-                # we need to search in the left interval
-                self.middlepoint(x_min, mid, q_prime)
-                return
-
-            if q_prime[0] >= a: # if the quantile of the middle point is bigger than the one we want to compute,
-                # we need to search in the right interval
-                self.middlepoint(mid, x_max, q_prime)
-                return
 
         midreach = False
         midind = -1
@@ -87,16 +78,21 @@ class FederatedPrivateQuantiles:
         Returns:
             None
         """
+        # assert that quantiles are of the form i/n, i between 0 and n
+        possible_quantiles = [i / self.n for i in range(self.n + 1)]
+        assert np.all(np.isin(self.q, possible_quantiles)), "Quantiles need to be in the form i/n, where i is between 0 and n."
+        # assert that quantiles are sorted
+        assert np.all(np.diff(self.q) > 0), "Quantiles need to be sorted."
         self.middlepoint(self.x.min(), self.x.max(), self.q)
         return self.z
 
 # Example usage:
-q = np.array([0, 0.1, 0.2, 0.3, 0.5, 0.66, 0.8, 0.95, 1])
 # create x vector with numbers from 1 to 100
 x = np.array([i for i in range(1, 101)])
 n = x.shape[0]
+q = np.array([i / n for i in range(0, n + 1, 8)])
 
-quantile_calculator = FederatedPrivateQuantiles(q, x, n)
+quantile_calculator = FederatedPrivateQuantiles(q, x)
 quantile_calculator.compute_quantiles()
 print(quantile_calculator.z)
 print(quantile_calculator.left_points_counter)
