@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import sys
 
 class FederatedPrivateQuantiles:
     """
@@ -15,16 +17,17 @@ class FederatedPrivateQuantiles:
         middlepoint: A recursive function that computes the quantiles using the federated private quantiles algorithm.
         compute_quantiles: A function that calls middlepoint to compute the quantiles and return the result.
     """
-    def __init__(self, q, x):
+    def __init__(self, q, x, max_depth):
         self.q = q # vector of quantile probbilities to compute
         #self.K = K # number of clients
         self.x = x # vector of data points
         self.n = len(x) # total number of data points
         self.z = [0] * len(q) # vector of quantiles
         self.left_points_counter = 0 # counter of how many times we compute left points 
+        self.max_depth = max_depth # maximum depth of the recursion
         # (hence how many times we exchange information between clients)
 
-    def middlepoint(self, x_min, x_max, q_prime):
+    def middlepoint(self, x_min, x_max, q_prime, depth):
         """
         A recursive function that computes the quantiles using the federated private quantiles algorithm.
 
@@ -36,6 +39,11 @@ class FederatedPrivateQuantiles:
         Returns:
             None
         """
+        if depth == self.max_depth:
+            eta = (x_max - x_min) / len(q_prime)
+            for i in range(len(q_prime)):
+                self.z[np.where(self.q == q_prime[i])[0][0]] = x_min + eta * (i + 1)
+            return
         if len(q_prime) == 0: # nothing to compute in this interval
             return
         if q_prime[0] == 0: # want to compute 0 quantile, hence return minimum and remove 0 from q_prime
@@ -65,10 +73,10 @@ class FederatedPrivateQuantiles:
 
         # search in the left interval for the quantiles
         # in q_prime that are smaller than the quantile of the middle point
-        self.middlepoint(x_min, mid, q_prime[:midind])
+        self.middlepoint(x_min, mid, q_prime[:midind], depth=depth+1)
         # search in the right interval for the quantiles
         # in q_prime that are bigger than the quantile of the middle point
-        self.middlepoint(mid, x_max, q_prime[midind:])
+        self.middlepoint(mid, x_max, q_prime[midind:], depth=depth+1)
         return
 
     def compute_quantiles(self):
@@ -83,15 +91,35 @@ class FederatedPrivateQuantiles:
         assert np.all(np.isin(self.q, possible_quantiles)), "Quantiles need to be in the form i/n, where i is between 0 and n."
         # assert that quantiles are sorted
         assert np.all(np.diff(self.q) > 0), "Quantiles need to be sorted."
-        self.middlepoint(self.x.min(), self.x.max(), self.q)
+        self.middlepoint(self.x.min(), self.x.max(), self.q, depth=0)
         return self
 
 # Example usage:
-# create x vector with numbers from 1 to 100
-x = np.array([i for i in range(1, 101)])
-q = np.array([i / len(x) for i in range(0, len(x), 8)])
-
-quantile_calculator = FederatedPrivateQuantiles(q, x)
+n = 1000
+num_quantiles = 10
+x = np.random.poisson(10, n)
+q = np.array([i / len(x) for i in range(0, len(x), int(len(x) / num_quantiles))])
+max_depth = n
+quantile_calculator = FederatedPrivateQuantiles(q, x, max_depth=max_depth)
+sys.setrecursionlimit(max_depth + 10)
 quantile_calculator.compute_quantiles()
 print(quantile_calculator.z)
 print(quantile_calculator.left_points_counter)
+
+empirical_quantiles = np.quantile(x, q)
+# plot the difference between compuded quantiles and empirical quantiles with max_depth on x-axis
+max_depths = [i for i in range(1, 100)]
+diffs = []
+for max_depth in max_depths:
+    quantile_calculator = FederatedPrivateQuantiles(q, x, max_depth=max_depth)
+    sys.setrecursionlimit(max_depth + 10)
+    quantile_calculator.compute_quantiles()
+    diff = np.sum(np.abs(empirical_quantiles - quantile_calculator.z))
+    diffs.append(diff)
+
+plt.plot(max_depths, diffs, 'x')
+plt.title("Sum of differences between computed quantiles and empirical quantiles")
+plt.xlabel("max_depth")
+plt.ylabel("sum of differences")
+plt.suptitle("n = " + str(n) + ", num_quantiles = " + str(num_quantiles))
+plt.show()
