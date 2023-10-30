@@ -2,25 +2,35 @@ import numpy as np
 import federated_private_quantiles as fpq
 
 class FederatedPrivateDecisionTree:
-    def __init__(self, max_depth=5, min_samples_split=2):
+    def __init__(self, max_depth=5, min_samples_split=2, num_quntiles=10, privacy_budget=1):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
+        self.num_quntiles = num_quntiles
+        self.privacy_budget = privacy_budget
         self.tree = {}
+        self.quantiles = {}
 
     def entropy(self, y):
-        p = np.sum(y) / len(y)
-        return -p*np.log2(p) - (1-p)*np.log2(1-p)
+        _, counts = np.unique(y, return_counts=True)
+        p = counts / len(y)
+        return -np.sum(p * np.log2(p))
 
     def fit(self, X, y):
-        self.tree = self._grow_tree(X, y)
+        n_samples, n_features = X.shape
+        quantile_probabilities = np.array([i / n_samples for i in range(1, n_samples, int(n_samples / self.num_quntiles))])
+        self.quantiles = {}
+        for feature in range(n_features):
+            self.quantiles[feature] = fpq.FederatedPrivateQuantiles(quantile_probabilities, X[:, feature], n_samples)
+            self.quantiles[feature] = self.quantiles[feature].compute_quantiles().z
+        self.tree = self._grow_tree(X, y, quantiles=self.quantiles)
 
-    def _grow_tree(self, X, y, depth=0):
+    def _grow_tree(self, X, y, depth=0, quantiles=None):
         n_samples, n_features = X.shape
         n_labels = len(np.unique(y))
 
         # Check termination conditions
         if (depth >= self.max_depth or n_samples < self.min_samples_split or n_labels == 1):
-            leaf_value = np.argmax(np.bincount(y))
+            leaf_value = int(np.argmax(np.bincount(y)))
             return leaf_value
 
         # Find best split
@@ -28,10 +38,11 @@ class FederatedPrivateDecisionTree:
         best_feature = None
         best_threshold = None
 
+        if quantiles is None:
+            quantiles = self.quantiles
+
         for feature in range(n_features):
-            quantiles = fpq.FederatedPrivateQuantiles(np.linspace(0, 1, num=11), X[:, feature], n_samples)
-            quantiles, _ = quantiles.compute_quantiles().z
-            for threshold in quantiles:
+            for threshold in quantiles[feature]:
                 y_left = y[X[:, feature] < threshold]
                 y_right = y[X[:, feature] >= threshold]
                 entropy = (len(y_left)/n_samples)*self.entropy(y_left) + (len(y_right)/n_samples)*self.entropy(y_right)
@@ -45,8 +56,8 @@ class FederatedPrivateDecisionTree:
         right_idxs = X[:, best_feature] >= best_threshold
 
         # Grow subtrees
-        left_tree = self._grow_tree(X[left_idxs], y[left_idxs], depth+1)
-        right_tree = self._grow_tree(X[right_idxs], y[right_idxs], depth+1)
+        left_tree = self._grow_tree(X[left_idxs], y[left_idxs], depth+1, quantiles)
+        right_tree = self._grow_tree(X[right_idxs], y[right_idxs], depth+1, quantiles)
 
         # Create node dictionary
         node = {'feature': best_feature,
@@ -67,3 +78,4 @@ class FederatedPrivateDecisionTree:
             return self._traverse_tree(x, node['left'])
         else:
             return self._traverse_tree(x, node['right'])
+        
