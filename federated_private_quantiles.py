@@ -84,7 +84,7 @@ class FederatedPrivateQuantiles:
         Computes the quantiles and returns the result.
 
         Returns:
-            None
+            self (FederatedPrivateQuantiles): The object itself.
         """
         # assert that quantiles are of the form i/n, i between 0 and n
         possible_quantiles = [i / self.n for i in range(self.n + 1)]
