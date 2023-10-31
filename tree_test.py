@@ -8,7 +8,7 @@ y = data.target
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y)
 # create and fit model
-model = FederatedPrivateDecisionTree(max_depth=3)
+model = FederatedPrivateDecisionTree(max_depth=10, privacy_budget=0.5)
 model.fit(X_train, y_train)
 # make predictions
 predictions = model.predict(X_test)
@@ -19,7 +19,7 @@ print("Accuracy: " + str(accuracy))
 
 # compare with decision tree from sklearn
 from sklearn.tree import DecisionTreeClassifier
-model = DecisionTreeClassifier(max_depth=3, criterion='entropy')
+model = DecisionTreeClassifier(max_depth=10, criterion='entropy')
 model.fit(X_train, y_train)
 predictions = model.predict(X_test)
 accuracy = accuracy_score(y_test, predictions)
