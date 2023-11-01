@@ -22,7 +22,7 @@ def simulation_plot(distributions, names, max_depths, q):
     plt.savefig("plots/quantile_errors.png")
 
 # Example usage:
-n = 100
+n = 1000
 num_quantiles = 10
 q = np.array([i / n for i in range(0, n, int(n / num_quantiles))])
 x_poisson = np.random.poisson(10, n)
@@ -31,8 +31,11 @@ x_laplace = np.random.laplace(0, 1, n)
 x_cauchy = np.random.standard_cauchy(n)
 x_logistic = np.random.logistic(0, 1, n)
 distributions = [x_poisson, x_gaussian, x_laplace, x_cauchy, x_logistic]
+# Standardize all datasets
+for i in range(len(distributions)):
+    distributions[i] = (distributions[i] - np.mean(distributions[i])) / np.std(distributions[i])
 names = ["poisson", "gaussian", "laplace", "cauchy", "logistic"]
-max_depths = [i for i in range(1, 100)]
+max_depths = [i for i in range(1, 20)]
 sys.setrecursionlimit(100 + 10)
 simulation_plot(distributions, names, max_depths, q)
 plt.show()
