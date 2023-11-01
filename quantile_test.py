@@ -14,6 +14,8 @@ def simulation_plot(distributions, names, max_depths, q):
             diffs.append(diff)
         # plot the difference between compuded quantiles and empirical quantiles with max_depth on x-axis
         plt.plot(max_depths, diffs, '-')
+    # add red dashed line at 0 
+    plt.plot(max_depths, [0 for i in range(len(max_depths))], '--', color='red')
     plt.title("Sum of differences between computed quantiles and empirical quantiles")
     plt.xlabel("max_depth")
     plt.ylabel("sum of differences")
