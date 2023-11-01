@@ -1,6 +1,7 @@
 from federated_private_decision_tree import FederatedPrivateDecisionTree
 from sklearn.metrics import accuracy_score
 from matplotlib import pyplot as plt
+import numpy as np
 # import breast cancer dataset from sklearn
 from sklearn.datasets import load_breast_cancer
 data = load_breast_cancer()
@@ -71,7 +72,7 @@ plt.title("Accuracy vs depth")
 plt.xlabel("depth")
 plt.ylabel("accuracy")
 plt.legend()
-plt.show()
+#plt.show()
 # safe plot in plots folder
 plt.savefig("plots/accuracy_vs_depth.png")
 
@@ -100,6 +101,7 @@ for privacy_budget in privacy_budgets:
     no_dp_accuracy = accuracy_score(y_test, predictions)
     no_dp_accuracies.append(no_dp_accuracy)
 
+plt.figure()
 plt.plot(privacy_budgets, exp_accuracies, '-', label='exponential')
 plt.plot(privacy_budgets, laplace_accuracies, '-', label='laplace')
 plt.plot(privacy_budgets, no_dp_accuracies, '-', label='no differential privacy')
@@ -107,9 +109,10 @@ plt.title("Accuracy vs privacy budget")
 plt.xlabel("privacy budget")
 plt.ylabel("accuracy")
 plt.legend()
-plt.show()
+#plt.show()
 # safe plot in plots folder
 plt.savefig("plots/accuracy_vs_privacy_budget.png")
+print("hi")
 
 
 
