@@ -122,7 +122,7 @@ y_breast = breast_data.target
 
 
 # load disease symptom dataset
-data = pd.read_csv('data/Disease_symptom_and_patient_profile_dataset.csv')
+data = pd.read_csv('tests/data/Disease_symptom_and_patient_profile_dataset.csv')
 # drop NA values
 data = data.dropna()
 # change outcome variable into 0 and one. It is called Outcome Variable and the classes are called Positive and Negative
@@ -144,7 +144,7 @@ k = 10 # number of times to repeat the experiment to have a less noisy estimate 
 fix_epsilon = 1 # privacy budged used when varying depths
 fix_depth = 10 # depth used when varying privacy budget
 max_depths = [i for i in range(1, 20)]
-privacy_budgets = np.linspace(0.1, 2, 10)
+privacy_budgets = np.linspace(0.1, 4, 10)
 datasets = [[X_breast, y_breast], [X_disease, y_disease]]
 dataset_names = ["breast cancer dataset", "disease symptom dataset"]
 
@@ -166,9 +166,3 @@ predictions = sklearn_model.predict(X_test)
 sklearn_accuracy = accuracy_score(y_test, predictions)
 print("Sklearn accuracy: " + str(sklearn_accuracy))
 print("Done!")
-
-
-
-
-
-
