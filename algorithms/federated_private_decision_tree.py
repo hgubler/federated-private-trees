@@ -1,5 +1,5 @@
 import numpy as np
-import federated_private_quantiles as fpq
+import algorithms.federated_private_quantiles as fpq
 
 class FederatedPrivateDecisionTree:
     def __init__(self, max_depth=5, 

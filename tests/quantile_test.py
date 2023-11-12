@@ -1,5 +1,6 @@
 import sys
-from federated_private_quantiles import FederatedPrivateQuantiles
+sys.path.append('') # Adds higher directory to python modules path
+from algorithms.federated_private_quantiles import FederatedPrivateQuantiles
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -32,15 +33,17 @@ x_gaussian = np.random.normal(0, 1, n)
 x_laplace = np.random.laplace(0, 1, n)
 x_cauchy = np.random.standard_cauchy(n)
 x_logistic = np.random.logistic(0, 1, n)
-distributions = [x_poisson, x_gaussian, x_laplace, x_cauchy, x_logistic]
+x_uniform = np.random.uniform(0, 1, n)
+distributions = [x_poisson, x_gaussian, x_laplace, x_cauchy, x_logistic, x_uniform]
 # Standardize all datasets
 for i in range(len(distributions)):
     distributions[i] = (distributions[i] - np.mean(distributions[i])) / np.std(distributions[i])
-names = ["poisson", "gaussian", "laplace", "cauchy", "logistic"]
+names = ["poisson", "gaussian", "laplace", "cauchy", "logistic", "uniform"]
 max_depths = [i for i in range(1, 20)]
 sys.setrecursionlimit(100 + 10)
 simulation_plot(distributions, names, max_depths, q)
 plt.show()
+
 
 
 

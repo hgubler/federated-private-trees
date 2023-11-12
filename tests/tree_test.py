@@ -1,4 +1,6 @@
-from federated_private_decision_tree import FederatedPrivateDecisionTree
+import sys
+sys.path.append('') # Adds higher directory to python modules path
+from algorithms.federated_private_decision_tree import FederatedPrivateDecisionTree
 from sklearn.metrics import accuracy_score
 from matplotlib import pyplot as plt
 import numpy as np
