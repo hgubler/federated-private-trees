@@ -57,7 +57,7 @@ def simulation_plots(datasets, dataset_names, max_depths, privacy_budgeds, fix_d
         plt.legend()
         #plt.show()
         # safe plot in plots folder
-        name = "plots/accuracy_vs_depth_" + dataset_names[counter].replace(" ", "_") + ".png"
+        name = "tests/first_version/plots/accuracy_vs_depth_" + dataset_names[counter].replace(" ", "_") + ".png"
         plt.savefig(name)
 
 
@@ -108,7 +108,7 @@ def simulation_plots(datasets, dataset_names, max_depths, privacy_budgeds, fix_d
         #plt.show()
         # safe plot in plots folder
         # create name indicating accuracy vs privacy budged as well as dataset name 
-        name = "plots/accuracy_vs_privacy_budget_" + dataset_names[counter].replace(" ", "_") + ".png"
+        name = "tests/first_version/plots/accuracy_vs_privacy_budget_" + dataset_names[counter].replace(" ", "_") + ".png"
         plt.savefig(name)
         counter += 1
     return
