@@ -22,7 +22,7 @@ def simulation_plot(distributions, names, max_depths, q):
     plt.ylabel("sum of differences")
     plt.suptitle("n = " + str(n) + ", num_quantiles = " + str(num_quantiles))
     plt.legend(names)
-    plt.savefig("plots/quantile_errors.png")
+    plt.savefig("tests/first_version/plots/quantile_errors.png")
 
 # Example usage:
 n = 1000
