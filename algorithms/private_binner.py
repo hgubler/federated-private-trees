@@ -1,18 +1,24 @@
 import numpy as np
 
 class PrivateBinner:
-    def __init__(self, num_bins, privacy_budget=1):
+    def __init__(self, num_bins, privacy_budget=1, diff_privacy=True):
         self.num_bins = num_bins
         self.privacy_budget = privacy_budget
+        self.diff_privacy = diff_privacy
 
     def fit_transform(self, X):
         # Set X_binned to a matrix with number of bins as rows and number of features as columns
         X_binned = np.zeros((self.num_bins, X.shape[1]))
         epsilon = self.privacy_budget / X.shape[1]
+        # if the private histogram for each feature is parralel composition
+        # epsilon = self.privacy_budget
         for i in range(X.shape[1]):
             bincounts, bins = np.histogram(X[:, i], bins=self.num_bins)
             # store the bincounts in X_bins
-            X_binned[:, i] = bincounts + np.random.laplace(0, 1/epsilon, size=bincounts.shape[0])
+            if self.diff_privacy:
+                X_binned[:, i] = bincounts + np.random.laplace(0, 1/epsilon, size=bincounts.shape[0])
+            else:
+                X_binned[:, i] = bincounts
         return X_binned
     
 # test code

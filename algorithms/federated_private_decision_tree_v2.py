@@ -13,7 +13,7 @@ class FederatedPrivateDecisionTree:
         self.privacy_budget = privacy_budget
         self.diff_privacy = diff_privacy
         self.tree = {}
-        self.quantiles = {}
+        
 
 
     def __entropy(self, p):
@@ -80,7 +80,7 @@ class FederatedPrivateDecisionTree:
         X_0 = X[y == 0]
         X_1 = X[y == 1]
         # calculate binned X_0 and X_1
-        binner = PrivateBinner(num_bins = num_bins, privacy_budget=self.privacy_budget / self.max_depth)
+        binner = PrivateBinner(num_bins = num_bins, privacy_budget=self.privacy_budget / self.max_depth, diff_privacy=self.diff_privacy)
         X0_binned = binner.fit_transform(X_0)
         X1_binned = binner.fit_transform(X_1)
         # Check termination conditions to potentially create a leaf
