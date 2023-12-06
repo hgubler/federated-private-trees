@@ -1,10 +1,11 @@
 import numpy as np
 
 class PrivateBinner:
-    def __init__(self, num_bins, privacy_budget=1, diff_privacy=True):
+    def __init__(self, num_bins, privacy_budget=1, diff_privacy=True, quantiles = None):
         self.num_bins = num_bins
         self.privacy_budget = privacy_budget
         self.diff_privacy = diff_privacy
+        self.quantiles = quantiles
 
     def fit_transform(self, X):
         # Set X_binned to a matrix with number of bins as rows and number of features as columns
@@ -12,14 +13,26 @@ class PrivateBinner:
         epsilon = self.privacy_budget / X.shape[1]
         # if the private histogram for each feature is parralel composition
         # epsilon = self.privacy_budget
+        if self.quantiles is None:
+            self.bins = np.zeros((self.num_bins+1, X.shape[1]))
+        if self.quantiles is not None:
+            self.bins = self.quantiles
         for i in range(X.shape[1]):
-            bincounts, bins = np.histogram(X[:, i], bins=self.num_bins)
+            # calculate quantiles of the feature
+            if X.size == 0:
+                raise ValueError("Input array X is empty")
+            if self.quantiles is None:
+                bincounts, bins = np.histogram(X[:, i], bins=self.num_bins)
+                self.bins[:, i] = bins
+            if self.quantiles is not None:
+                quantiles = self.quantiles[:, i]
+                bincounts, bins = np.histogram(X[:, i], bins=quantiles)
             # store the bincounts in X_bins
             if self.diff_privacy:
                 X_binned[:, i] = bincounts + np.random.laplace(0, 1/epsilon, size=bincounts.shape[0])
             else:
                 X_binned[:, i] = bincounts
-        return X_binned
+        return np.round(X_binned).astype(int)
     
 # test code
 if __name__ == "__main__":
