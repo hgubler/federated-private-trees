@@ -36,7 +36,8 @@ def accuracies_calc(privacy_budgeds,
                                                    num_bins=num_bins, 
                                                    use_quantiles=use_quantiles)
         sklearn_model = DecisionTreeClassifier(max_depth=max_depth,
-                                               min_samples_leaf=min_samples_leaf)
+                                               min_samples_leaf=min_samples_leaf,
+                                               criterion='entropy')
         accuracy = 0
         no_dp_accuracy = 0
         sklearn_accuracy = 0
@@ -82,9 +83,9 @@ max_depth_list = [4, 7, 10]
 fig, ax = plt.subplots(nrows=3, ncols=3, sharex=True)
 
 # Create lines for the legend
-line1, = ax[0, 0].plot([], [], '-', label='differential privacy')
-line2, = ax[0, 0].plot([], [], '-', label='no differential privacy mode')
-line3, = ax[0, 0].plot([], [], '-', label='normal sklearn decision tree')
+line1, = ax[0, 0].plot([], [], '-', label='differential privacy', color='red')
+line2, = ax[0, 0].plot([], [], '-', label='no differential privacy mode', color='blue')
+line3, = ax[0, 0].plot([], [], '-', label='normal sklearn decision tree', color='green')
 
 for n_features in n_features_list:
     for max_depth in max_depth_list:
@@ -103,13 +104,16 @@ for n_features in n_features_list:
                                                                      n_samples=n_samples,
                                                                      n_features=n_features,
                                                                      seed=seed)
-        ax[n_features_list.index(n_features), max_depth_list.index(max_depth)].plot(privacy_budgeds, accuracy, '-', label='differential privacy')
-        ax[n_features_list.index(n_features), max_depth_list.index(max_depth)].plot(privacy_budgeds, no_dp_accuracy, '-', label = 'no differential privacy mode')
-        ax[n_features_list.index(n_features), max_depth_list.index(max_depth)].plot(privacy_budgeds, sklearn_accuracy, '-', label = 'normal sklearn decision tree')
+        ax[n_features_list.index(n_features), max_depth_list.index(max_depth)].plot(privacy_budgeds, accuracy, '-', color='red')
+        ax[n_features_list.index(n_features), max_depth_list.index(max_depth)].plot(privacy_budgeds, no_dp_accuracy, '-', color='blue')
+        ax[n_features_list.index(n_features), max_depth_list.index(max_depth)].plot(privacy_budgeds, sklearn_accuracy, '-', color='green')
         ax[n_features_list.index(n_features), max_depth_list.index(max_depth)].set_xlabel('privacy budged')
         ax[n_features_list.index(n_features), max_depth_list.index(max_depth)].set_title('n_features = {}, max_depth = {}'.format(n_features, max_depth))
+        print((1 + n_features_list.index(n_features)) * (1 + max_depth_list.index(max_depth)))
+# set a general title for the figure specifying number of bins and number of samples
+fig.suptitle('Accuracy vs. privacy budged (number of bins = {}, number of samples = {})'.format(num_bins, n_samples))
 fig.legend(handles=[line1, line2, line3], loc='upper right')
-plt.savefig('tests/second_version/plots/accuracy_vs_privacy_budged.png')
+plt.savefig('tests/second_version/plots/accuracy_vs_privacy_budged_50_bins.png')
 plt.show()
 
 
