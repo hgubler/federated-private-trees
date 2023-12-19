@@ -21,9 +21,7 @@ class FederatedPrivateDecisionTree:
 
 
     def __entropy(self, p):
-        if p == 0 or p == 1:
-            return 0
-        return -p * np.log2(p)
+        return p * (1-p)
     
     def __create_leaf(self, X, y):
         if self.diff_privacy == False:

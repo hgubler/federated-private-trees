@@ -1,7 +1,7 @@
 import sys
 sys.path.append('') # Adds higher directory to python modules path
 from algorithms.federated_private_decision_tree_v2 import FederatedPrivateDecisionTree
-from tests.data_simulation.simulate_data import SimulateData
+from tests.simulation.simulate_data import SimulateData
 from sklearn.metrics import accuracy_score
 from matplotlib import pyplot as plt
 import numpy as np
@@ -68,7 +68,7 @@ def accuracies_calc(privacy_budgeds,
 
 
 
-n_samples = 1000
+n_samples = 100
 privacy_budgeds = np.linspace(0.1, 10, 10)
 rho_1 = 0.5
 rho_2 = 0.9
@@ -113,9 +113,5 @@ for n_features in n_features_list:
 # set a general title for the figure specifying number of bins and number of samples
 fig.suptitle('Accuracy vs. privacy budged (number of bins = {}, number of samples = {})'.format(num_bins, n_samples))
 fig.legend(handles=[line1, line2, line3], loc='upper right')
-plt.savefig('tests/second_version/plots/accuracy_vs_privacy_budged_50_bins.png')
+plt.savefig('tests/second_version/plots/accuracy_vs_privacy_budged_100_samples_gini.png')
 plt.show()
-
-
-
-
