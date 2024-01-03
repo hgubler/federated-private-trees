@@ -2,7 +2,7 @@ import sys
 sys.path.append('') # Adds higher directory to python modules path
 from algorithms.federated_private_decision_tree_v2 import FederatedPrivateDecisionTree
 from algorithms.decision_tree import DecisionTree
-from Experiments.simulation.simulate_data import SimulateData
+from experiments.data.simulate_data import SimulateData
 from sklearn.metrics import accuracy_score
 from matplotlib import pyplot as plt
 import numpy as np
@@ -113,8 +113,8 @@ max_depth_list = [5, 10]
 fig, ax = plt.subplots(ncols=len(n_features_list), nrows=len(max_depth_list), sharex=True, sharey=True, figsize=(14, 7.25))
 
 # Create lines for the legend
-line1, = ax[0, 0].plot([], [], '-', label='differential privacy without saving budget', color='red')
-line2, = ax[0, 0].plot([], [], '-', label='differential privacy with saving budget', color='orange')
+line1, = ax[0, 0].plot([], [], '-', label='differential privacy without budget saving', color='red')
+line2, = ax[0, 0].plot([], [], '-', label='differential privacy with budget saving', color='orange')
 line3, = ax[0, 0].plot([], [], '-', label='local decision tree', color='green')
 line4, = ax[0, 0].plot([], [], '-', label='centralized decision tree', color='blue')
 
@@ -144,13 +144,14 @@ for max_depth in max_depth_list:
         ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].plot(privacy_budgeds, normal_dt_accuracy, '-o', color='blue')
         ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_title('n_features={}, max_depth={}'.format(n_features, max_depth))
         if (n_features == n_features_list[0]):
-            ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_ylabel('accuracy')
+            ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_ylabel('test accuracy')
         if (max_depth == max_depth_list[-1]):
-            ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_xlabel('privacy_budged')
+            ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_xlabel('privacy budget')
         print((1 + n_features_list.index(n_features)) * (1 + max_depth_list.index(max_depth)))
 # set a general title for the figure specifying number of bins and number of samples
 fig.legend(handles=[line1, line2, line3, line4], loc='upper center', bbox_to_anchor=(0.515, 0.135))
 fig.subplots_adjust(bottom=0.2) 
+fig.suptitle('High correlation setting (rho=0.9)')
 plt.savefig('Experiments/main_report_plots/accuracy_vs_privacy_budged_high_corr.pdf', bbox_inches='tight')
 print('done with high correlation setting!')
 #######################################################################################################
@@ -164,10 +165,10 @@ rho_2 = 0.3
 fig2, ax = plt.subplots(ncols=len(n_features_list), nrows=len(max_depth_list), sharex=True, sharey=True, figsize=(14, 7.25))
 
 # Create lines for the legend
-line1, = ax[0, 0].plot([], [], '-', label='differential privacy without saving budget', color='red')
-line4, = ax[0, 0].plot([], [], '-', label='differential privacy with saving budget', color='orange')
+line1, = ax[0, 0].plot([], [], '-', label='differential privacy without budget saving', color='red')
+line2, = ax[0, 0].plot([], [], '-', label='differential privacy with budget saving', color='orange')
 line3, = ax[0, 0].plot([], [], '-', label='local decision tree', color='green')
-line5, = ax[0, 0].plot([], [], '-', label='centralized decision tree', color='blue')
+line4, = ax[0, 0].plot([], [], '-', label='centralized decision tree', color='blue')
 
 for max_depth in max_depth_list:
     for n_features in n_features_list:
@@ -193,14 +194,15 @@ for max_depth in max_depth_list:
         ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].plot(privacy_budgeds, dp_saving_accuracy, '-o', color='orange')
         ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].plot(privacy_budgeds, local_accuracy, '-o', color='green')
         ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].plot(privacy_budgeds, normal_dt_accuracy, '-o', color='blue')
-        ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_title('n_features = {}, max_depth = {}'.format(n_features, max_depth))
+        ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_title('n_features={}, max_depth={}'.format(n_features, max_depth))
         if (n_features == n_features_list[0]):
-            ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_ylabel('accuracy')
+            ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_ylabel('test accuracy')
         if (max_depth == max_depth_list[-1]):
-            ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_xlabel('privacy_budged')
+            ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_xlabel('privacy budget')
         print((1 + n_features_list.index(n_features)) * (1 + max_depth_list.index(max_depth)))
 # set a general title for the figure specifying number of bins and number of samples
-fig2.legend(handles=[line1, line2, line3, line4, line5], loc='upper center', bbox_to_anchor=(0.515, 0.135))
+fig2.legend(handles=[line1, line2, line3, line4], loc='upper center', bbox_to_anchor=(0.515, 0.135))
 fig2.subplots_adjust(bottom=0.2) 
+fig2.suptitle('Low correlation setting (rho=0.3)')
 plt.savefig('Experiments/main_report_plots/accuracy_vs_privacy_budged_low_corr.pdf', bbox_inches='tight')
 print('done with low correlation setting!')

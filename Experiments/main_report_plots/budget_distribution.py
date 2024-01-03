@@ -1,7 +1,7 @@
 import sys
 sys.path.append('') # Adds higher directory to python modules path
 from algorithms.federated_private_decision_tree_v2 import FederatedPrivateDecisionTree
-from Experiments.simulation.simulate_data import SimulateData
+from experiments.data.simulate_data import SimulateData
 from sklearn.metrics import accuracy_score
 from matplotlib import pyplot as plt
 import numpy as np
@@ -12,7 +12,7 @@ privacy_budget = 5
 n_props = 50
 leaf_props = np.linspace(1 / n_props, 1, n_props, endpoint=False)
 bounds_props = np.linspace(1 / n_props, 1, n_props, endpoint=False)
-n_rep = 10
+n_rep = 50
 n_samples = 300
 n_features = 10
 n_centers = 5
@@ -88,15 +88,21 @@ fig1 = plt.figure(figsize=(6, 6))
 # plot results first for no budget saving model
 plt.plot(leaf_props[::5], no_budged_saving_accuracies[::5], '-o', color='red')
 plt.xlabel('leaf privacy budget proportion')
-plt.ylabel('accuracy')
+plt.ylabel('test accuracy')
 plt.savefig('Experiments/main_report_plots/budget_distribution_no_saving.pdf')
 
 fig2 = plt.figure(figsize=(6, 6))
 # plot results for budget saving model as a heatmap for the matrix of leaf and bounds privacy proportions
 im = plt.imshow(budged_saving_accuracies, cmap='hot', interpolation='nearest')
-plt.colorbar(im)
+plt.colorbar(im, label='test accuracy')
 plt.xlabel('leaf privacy budget proportion')
 plt.ylabel('bounds privacy budget proportion')
+# make 4 x ticks and y ticks. I want to have the ticks on a equidistant grid on 1 to len(leaf_props)
+ticks = np.array([10, 20, 30, 40])
+ticks_labels = np.array([0.2, 0.4, 0.6, 0.8])
+plt.xticks(ticks, ticks_labels)
+plt.yticks(ticks, ticks_labels)
+
 plt.savefig('Experiments/main_report_plots/budged_distribution_saving.pdf')
 plt.show()
 
