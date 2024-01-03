@@ -4,10 +4,7 @@ from algorithms.federated_private_decision_tree import FederatedPrivateDecisionT
 from algorithms.decision_tree import DecisionTree
 from experiments.data.simulate_data import SimulateData
 from sklearn.metrics import accuracy_score
-from matplotlib import pyplot as plt
-import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
 
 def accuracies_calc(privacy_budgeds, 
                     mean_1,
@@ -141,7 +138,8 @@ def accuracies_calc(privacy_budgeds,
 
 def no_budged_saving_accuracy(leaf_prop, n_rep, n_samples, n_features, n_centers, mixture_model, rho_1, rho_2, privacy_budget, seed):
     """
-    This function computes the accuracy of a non-budget saving model.
+    This function computes the accuracy of a non-budget saving model with the possibility to vary 
+    the proportion of the privacy budget that is used for the leaf nodes.
 
     Parameters
     ----------
@@ -193,14 +191,16 @@ def no_budged_saving_accuracy(leaf_prop, n_rep, n_samples, n_features, n_centers
 
 def budget_saving_accuracy(leaf_prop, bounds_prop, n_rep, n_samples, n_features, n_centers, mixture_model, rho_1, rho_2, privacy_budget, seed):
     """
-    This function computes the accuracy of a budget saving model.
+    This function computes the accuracy of a budget saving model with the possibility to vary
+    the proportion of the privacy budget that is used for the leaf nodes and the bounds, as well as
+    the proportion of the privacy budget that is used for the impurity bounds.
 
     Parameters
     ----------
     leaf_prop : float
         The proportion of the privacy budget that is used for the leaf nodes.
     bounds_prop : float
-        The proportion of the privacy budget that is used for the bounds.
+        The proportion of the privacy budget that is used for the impurity bounds.
     n_rep : int
         The number of repetitions of the experiment.
     n_samples : int
