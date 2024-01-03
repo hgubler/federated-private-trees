@@ -1,91 +1,8 @@
 import sys
 sys.path.append('') # Adds higher directory to python modules path
-from algorithms.federated_private_decision_tree_v2 import FederatedPrivateDecisionTree
-from algorithms.decision_tree import DecisionTree
-from experiments.data.simulate_data import SimulateData
-from sklearn.metrics import accuracy_score
+from experiments.evaluation_functions import accuracies_calc
 from matplotlib import pyplot as plt
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
-
-def accuracies_calc(privacy_budgeds, 
-                    mean_1,
-                    mean_2,
-                    max_depth=4, 
-                    num_bins=10,
-                    min_samples_leaf=10,
-                    use_quantiles=False,
-                    n_rep=100,
-                    rho_1=0.5,
-                    rho_2=0.9,
-                    n_samples=1000,
-                    n_features=10,
-                    party_idx = [],
-                    mixture_model = False,
-                    n_centers = 0,
-                    seed=0):
-    dp_accuracies = []
-    local_accuracies = []
-    normal_dt_accuracies = []
-    dp_saving_accuracies = []
-    for i in range(privacy_budgeds.shape[0]):
-        
-        
-        accuracy = 0
-        local_accuracy = 0
-        normal_dt_accuracy = 0
-        dp_saving_accuracy = 0
-        for j in range(n_rep):
-            local_model = DecisionTree(max_depth=max_depth,
-                                               min_samples_leaf=min_samples_leaf)
-            normal_dt_model = DecisionTree(max_depth=max_depth,
-                                               min_samples_leaf=min_samples_leaf)
-            model = FederatedPrivateDecisionTree(max_depth=max_depth, 
-                                             min_samples_leaf=min_samples_leaf, 
-                                             privacy_budget=privacy_budgeds[i], 
-                                             diff_privacy=True, num_bins=num_bins, 
-                                             use_quantiles=use_quantiles,
-                                             party_idx=party_idx,
-                                             save_budget=False)
-            dp_saving_model = FederatedPrivateDecisionTree(max_depth=max_depth, 
-                                             min_samples_leaf=min_samples_leaf, 
-                                             privacy_budget=privacy_budgeds[i], 
-                                             diff_privacy=True, num_bins=num_bins, 
-                                             use_quantiles=use_quantiles,
-                                             party_idx=party_idx,
-                                             save_budget=True,
-                                             )
-            simulate_data = SimulateData(n_features, mean_1, mean_2, rho_1, rho_2, 2 * n_samples, mixture_model=mixture_model, n_centers=n_centers, seed=seed)
-            X, y = simulate_data.generate_data()
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
-            X_party_1 = X_train[party_idx[0]]
-            y_party_1 = y_train[party_idx[0]]
-            # fit models
-            model.fit(X_train, y_train)
-            local_model.fit(X_party_1, y_party_1)
-            normal_dt_model.fit(X_train, y_train)
-            dp_saving_model.fit(X_train, y_train)
-            # make predictions
-            predictions = model.predict(X_test)
-            local_predictions = local_model.predict(X_test)
-            normal_dt_predictions = normal_dt_model.predict(X_test)
-            dp_saving_predictions = dp_saving_model.predict(X_test)
-            # calculate accuracies
-            accuracy = accuracy + accuracy_score(y_test, predictions)
-            local_accuracy = local_accuracy + accuracy_score(y_test, local_predictions)
-            normal_dt_accuracy = normal_dt_accuracy + accuracy_score(y_test, normal_dt_predictions)
-            dp_saving_accuracy = dp_saving_accuracy + accuracy_score(y_test, dp_saving_predictions)
-            seed = seed + 1
-        accuracy = accuracy / n_rep
-        local_accuracy = local_accuracy / n_rep
-        dp_saving_accuracy = dp_saving_accuracy / n_rep
-        normal_dt_accuracy = normal_dt_accuracy / n_rep
-        dp_accuracies.append(accuracy)
-        local_accuracies.append(local_accuracy)
-        normal_dt_accuracies.append(normal_dt_accuracy)
-        dp_saving_accuracies.append(dp_saving_accuracy)
-    return dp_accuracies, local_accuracies, normal_dt_accuracies, dp_saving_accuracies
 
 
 #######################################################################################################
@@ -152,7 +69,6 @@ for max_depth in max_depth_list:
         if (max_depth == max_depth_list[-1]):
             ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_xlabel('privacy budget')
         print((1 + n_features_list.index(n_features)) * (1 + max_depth_list.index(max_depth)))
-# set a general title for the figure specifying number of bins and number of samples
 fig.legend(handles=[line1, line2, line3, line4], loc='upper center', bbox_to_anchor=(0.515, 0.135))
 fig.subplots_adjust(bottom=0.2) 
 fig.suptitle('High correlation setting (rho=0.9)')
@@ -204,7 +120,6 @@ for max_depth in max_depth_list:
         if (max_depth == max_depth_list[-1]):
             ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_xlabel('privacy budget')
         print((1 + n_features_list.index(n_features)) * (1 + max_depth_list.index(max_depth)))
-# set a general title for the figure specifying number of bins and number of samples
 fig2.legend(handles=[line1, line2, line3, line4], loc='upper center', bbox_to_anchor=(0.515, 0.135))
 fig2.subplots_adjust(bottom=0.2) 
 fig2.suptitle('Low correlation setting (rho=0.3)')
@@ -267,7 +182,6 @@ for max_depth in max_depth_list:
         if (max_depth == max_depth_list[-1]):
             ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_xlabel('privacyt budget')
         print((1 + n_features_list.index(n_features)) * (1 + max_depth_list.index(max_depth)))
-# set a general title for the figure specifying number of bins and number of samples
 fig3.legend(handles=[line1, line2, line3, line4], loc='upper center', bbox_to_anchor=(0.515, 0.135))
 fig3.subplots_adjust(bottom=0.2) 
 fig3.suptitle('High correlation setting (rho=0.9)')
@@ -319,7 +233,6 @@ for max_depth in max_depth_list:
         if (max_depth == max_depth_list[-1]):
             ax[max_depth_list.index(max_depth), n_features_list.index(n_features)].set_xlabel('privacy budget')
         print((1 + n_features_list.index(n_features)) * (1 + max_depth_list.index(max_depth)))
-# set a general title for the figure specifying number of bins and number of samples
 fig4.legend(handles=[line1, line2, line3, line4], loc='upper center', bbox_to_anchor=(0.515, 0.135))
 fig4.subplots_adjust(bottom=0.2) 
 fig4.suptitle('Low correlation setting (rho=0.3)')

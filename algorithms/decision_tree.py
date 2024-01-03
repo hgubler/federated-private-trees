@@ -1,6 +1,30 @@
 import numpy as np
 
 class DecisionTree:
+    """
+    A class used to represent a Decision Tree.
+
+    Attributes
+    ----------
+    max_depth : int
+        The maximum depth of the tree. The default is 5.
+    min_samples_leaf : int
+        The minimum number of samples required to be at a leaf node. The default is 10.
+
+    Methods
+    -------
+    fit(X, y):
+        Trains the decision tree on the given data.
+    predict(X):
+        Makes predictions for the given data.
+    __entropy(p):
+        Calculates the entropy of a binary distribution.
+    __create_leaf(y):
+        Creates a leaf node based on the majority class in y.
+    __best_split(X, y):
+        Finds the best feature and threshold to split on.
+    """
+
     def __init__(self, 
                  max_depth=5, 
                  min_samples_leaf=10):
@@ -10,12 +34,53 @@ class DecisionTree:
 
 
     def __entropy(self, p):
+        """
+        Calculates the entropy of a binary distribution.
+
+        Parameters
+        ----------
+            p : float
+                The proportion of samples in one class.
+
+        Returns
+        -------
+            float
+                The entropy of the distribution.
+        """
         return p * (1-p)
     
     def __create_leaf(self, y):
+        """
+        Creates a leaf node based on the majority class in y.
+
+        Parameters
+        ----------
+            y : numpy array
+                The labels of the samples at the node.
+
+        Returns
+        -------
+            int
+                The majority class in y.
+        """
         return int(np.bincount(y).argmax())
     
     def __best_split(self, X, y):
+        """
+        Finds the best feature and threshold to split on.
+
+        Parameters
+        ----------
+            X : numpy array
+                The features of the samples at the node.
+            y : numpy array
+                The labels of the samples at the node.
+
+        Returns
+        -------
+            tuple
+                The best feature and threshold to split on.
+        """
         n_features = X.shape[1]
         best_entropy = np.inf
         best_feature = None
@@ -45,10 +110,37 @@ class DecisionTree:
         return best_entropy, best_feature, best_threshold
 
     def fit(self, X, y):
+        """
+        Trains the decision tree on the given data.
+
+        Parameters
+        ----------
+            X : numpy array
+                The features of the training data.
+            y : numpy array
+                The labels of the training data.
+        """
         # Grow tree
         self.tree = self.__grow_tree(X, y, depth=0)
 
     def __grow_tree(self, X, y, depth=0):
+        """
+        Grows the decision tree recursively.
+
+        Parameters
+        ----------
+            X : numpy array
+                The features of the data at the current node.
+            y : numpy array
+                The labels of the data at the current node.
+            depth : int
+                The current depth of the tree.
+
+        Returns
+        -------
+            dict
+                The current node in the tree.
+        """
         # Check termination conditions to potentially create a leaf
         if (depth >= self.max_depth):
             return self.__create_leaf(y)
@@ -90,9 +182,37 @@ class DecisionTree:
         return node
 
     def predict(self, X):
+        """
+        Makes predictions for the given data.
+
+        Parameters
+        ----------
+            X : numpy array
+                The features of the data to make predictions for.
+
+        Returns
+        -------
+            numpy array
+                The predicted labels for the data.
+        """
         return np.array([self._traverse_tree(x, self.tree) for x in X])
 
     def _traverse_tree(self, x, node):
+        """
+        Traverses the tree to make a prediction for a single sample.
+
+        Parameters
+        ----------
+            x : numpy array
+                The features of the sample to make a prediction for.
+            node : dict
+                The current node in the tree.
+
+        Returns
+        -------
+            int
+                The predicted label for the sample.
+        """
         if isinstance(node, int):
             return node
         feature_val = x[node['feature']]

@@ -2,6 +2,42 @@ import numpy as np
 from algorithms.private_binner import PrivateBinner
 
 class FederatedPrivateDecisionTree:
+    """
+    A class used to represent a federated differentially private decision tree.
+
+    Attributes
+    ----------
+    max_depth : int
+        The maximum depth of the tree. The default is 5.
+    min_samples_leaf : int
+        The minimum number of samples required to be at a leaf node. The default is 10.
+    num_bins : int
+        The number of bins to use for binning the features. The default is 10.
+    privacy_budget : float
+        The total privacy budget to use. The default is 1.
+    leaf_privacy_proportion : float
+        The proportion of the privacy budget to use for the leaves. The default is 0.5.
+    bounds_privacy_proportion : float
+        The proportion of the privacy budget to use for the feature bounds (only needed if save_budget=True). The default is 0.25.
+    use_quantiles : bool
+        Whether to use quantiles for binning or not (Experimental, does not satisfy differential privacy). The default is False.
+    diff_privacy : bool
+        Whether to use differential privacy or not ("False" only compatible with save_budget=False). The default is True.
+    save_budget : bool
+        Whether to save privacy budget by using feature impurity bounds. The default is False.
+    random_state : int
+        The random state to use. The default is None.
+    party_idx : list
+        The sample indexes of the parties. The default is [].
+
+    Methods
+    -------
+    fit(X, y):
+        Trains the decision tree on the given data.
+    predict(X):
+        Makes predictions for the given data.    
+    """
+
     def __init__(self, 
                  max_depth=5, 
                  min_samples_leaf=10, 
@@ -30,9 +66,37 @@ class FederatedPrivateDecisionTree:
 
 
     def __entropy(self, p):
+        """
+        Calculates the entropy of a binary distribution.
+
+        Parameters
+        ----------
+            p : float
+                The proportion of samples in one class.
+
+        Returns
+        -------
+            float
+                The entropy of the distribution.
+        """
         return p * (1-p)
     
-    def __create_leaf(self, X, y, saved_budged=0):
+    def __create_leaf(self, y, saved_budged=0):
+        """
+        Creates a leaf node based on the majority class in y.
+
+        Parameters
+        ----------
+            y : numpy array
+                The labels of the samples at the node.
+            saved_budged : float
+                The saved privacy budget to use for the leaf (only relevant if saved_budget=True)
+
+        Returns
+        -------
+            int
+                The majority class in y.
+        """
         if self.diff_privacy == False:
             return int(np.bincount(y).argmax())
         if self.diff_privacy == True:
@@ -43,6 +107,27 @@ class FederatedPrivateDecisionTree:
             return int(np.argmax(bincounts))
     
     def __best_split(self, X0_binned, X1_binned, num_bins):
+        """
+        Finds the best feature and threshold to split on without using budget saving mode.
+
+        Parameters
+        ----------
+            X0_binned : numpy array
+                The binned features of the samples of class 0 at the node.
+            X1_binned : numpy array
+                The binned features of the samples of class 1 at the node.
+            num_bins : int
+                The number of bins used for binning the features.
+
+        Returns
+        -------
+            float
+                The entropy of the splitted space.
+            int
+                The best feature to split on.
+            int
+                The best threshold to split on (bin index).
+        """
         n_features = X0_binned.shape[1]
         best_entropy = np.inf
         best_feature = None
@@ -85,6 +170,31 @@ class FederatedPrivateDecisionTree:
         return best_entropy_return, best_feature, best_threshold_index
     
     def __best_split_save_budged(self, X, y, saved_budged, party_idx):
+        """
+        Finds the best feature and threshold to split on using budget saving mode with feature impurity bounds.
+        
+        Parameters
+        ----------
+            X : numpy array
+                The feature matrix of the current node.
+            y : numpy array
+                The labels of the current node.
+            saved_budged : float
+                The saved privacy budget to use for the node.
+            party_idx : list
+                The sample indexes of the parties.
+
+        Returns
+        -------
+            float
+                The entropy of the splitted space.
+            int
+                The best feature to split on.
+            int
+                The best threshold to split on (bin index).
+            float
+                The saved privacy budget to use for the child nodes.
+        """
         n_features = X.shape[1]
         n_parties = len(self.party_idx)
         feature_entropy_bounds = np.zeros(n_features)
@@ -152,6 +262,27 @@ class FederatedPrivateDecisionTree:
         return best_entropy, best_feature, best_threshold_index, saved_budged
 
     def __best_impurity_locally(self, X, y, feature, party, party_idx):
+        """
+        Finds the best threshold to locally split on for a given feature and party.
+
+        Parameters
+        ----------
+            X : numpy array
+                The feature matrix of the current node data (but only use the samples from one party).
+            y : numpy array
+                The labels of the current node (but only use the labels from one party).
+            feature : int
+                The feature to find best split on.
+            party : int
+                The party to split on.
+            party_idx : list
+                The sample indexes of the parties.
+
+        Returns
+        -------
+            float
+                The entropy of the splitted space corresponding to the party.
+        """
         X_party = X[party_idx[party], feature]
         y_party = y[party_idx[party]]
         best_entropy = np.inf
@@ -169,6 +300,21 @@ class FederatedPrivateDecisionTree:
 
 
     def fit(self, X, y):
+        """
+        Trains the decision tree on the given data.
+
+        Parameters
+        ----------
+            X : numpy array
+                The feature matrix of the whole data.
+            y : numpy array
+                The labels of the whole data.
+            
+        Returns
+        -------
+            None
+        """
+        # Distribute privacy budget
         self.__distribute_privacy_budged()
         # Grow tree$
         if self.random_state != None:
@@ -176,16 +322,43 @@ class FederatedPrivateDecisionTree:
         self.tree = self.__grow_tree(X, y, num_bins=self.num_bins, depth=0, party_idx=self.party_idx)
 
     def __distribute_privacy_budged(self):
+        """
+        Distributes the privacy budget between the leaves and nodes.
+
+        Returns
+        -------
+            None
+        """
         self.leaf_epsilon = self.privacy_budget * self.leaf_privacy_proportion
         self.node_epsilon = self.privacy_budget * (1 - self.leaf_privacy_proportion) / self.max_depth
 
     def __grow_tree(self, X, y, num_bins, depth=0, saved_budged=0, party_idx=[]):
+        """
+        Grows the decision tree recursively.
+
+        Parameters
+        ----------
+            X : numpy array
+                The feature matrix of the current node.
+            y : numpy array
+                The labels of the current node.
+            num_bins : int
+                The number of bins to use for binning the features.
+            depth : int
+                The depth of the current node.
+            saved_budged : float
+                The saved privacy budget to use for the node (only needed if save_budget=True).
+            party_idx : list
+                The sample indexes of the parties.
+
+        Returns
+        -------
+            dict
+                The current node in the tree or a leaf node.
+        """
         # Check termination conditions to potentially create a leaf
         if (depth >= self.max_depth):
-            return self.__create_leaf(X, y)
-        
-        #if y.size <= self.min_samples_leaf:
-            #return self.__create_leaf(X, y)
+            return self.__create_leaf(y)
         
         if self.save_budget:
             best_entropy, best_feature, best_threshold_index, saved_budged = self.__best_split_save_budged(X, y, saved_budged=saved_budged, party_idx=party_idx)
@@ -198,8 +371,6 @@ class FederatedPrivateDecisionTree:
             # bin the features separated by label
             X_0 = X[y == 0]
             X_1 = X[y == 1]
-            #if X_0.size == 0 or X_1.size == 0:
-                #return self.__create_leaf(X, y)
             # calculate binned X_0 and X_1
             bins = np.zeros((num_bins+1, X.shape[1]))
             if self.use_quantiles:
@@ -217,21 +388,21 @@ class FederatedPrivateDecisionTree:
             # As number of samples is noisy on each feature, we check condition on all features
             n_samples = np.sum(X0_binned, axis=0) + np.sum(X1_binned, axis=0)
             if np.all(n_samples <= self.min_samples_leaf):
-                return self.__create_leaf(X, y)
+                return self.__create_leaf(y)
             
             # Create a leaf if we have only samples from one class
             # As number of samples is noisy on each feature, we check condition on all features
             n_samples_0 = np.sum(X0_binned, axis=0)
             n_samples_1 = np.sum(X1_binned, axis=0)
             if np.all(n_samples_0 <= 0) or np.all(n_samples_1 <= 0):
-                return self.__create_leaf(X, y)
+                return self.__create_leaf(y)
             
             # Find best split
             best_entropy, best_feature, best_threshold_index = self.__best_split(X0_binned, X1_binned, self.num_bins)
 
         # If didn't find a split that reduces entropy, make a leaf node
         if best_entropy == np.inf:
-            return self.__create_leaf(X, y, saved_budged=saved_budged)
+            return self.__create_leaf(y, saved_budged=saved_budged)
         
         # Otherwise divide space to create sub-trees
         # Find the value in the original data that corresponds to the threshold
@@ -267,7 +438,7 @@ class FederatedPrivateDecisionTree:
 
 
         if int(left_idxs.sum() * self.num_bins) == 0 or int(right_idxs.sum() * self.num_bins) == 0:
-            return self.__create_leaf(X, y)
+            return self.__create_leaf(y)
     
         # Grow subtrees
         left_tree = self.__grow_tree(X=X[left_idxs], 
@@ -292,9 +463,37 @@ class FederatedPrivateDecisionTree:
         return node
 
     def predict(self, X):
+        """
+        Makes predictions for the given data.
+
+        Parameters
+        ----------
+            X : numpy array
+                The data to make predictions for.
+
+        Returns
+        -------
+            numpy array
+                The predicted labels for the data.
+        """
         return np.array([self._traverse_tree(x, self.tree) for x in X])
 
     def _traverse_tree(self, x, node):
+        """
+        Traverses the tree to make a prediction for a single sample.
+
+        Parameters
+        ----------
+            x : numpy array
+                The features of the sample to make a prediction for.
+            node : dict
+                The current node in the tree.
+
+        Returns
+        -------
+            int
+                The predicted label for the sample.
+        """
         if isinstance(node, int):
             return node
         feature_val = x[node['feature']]

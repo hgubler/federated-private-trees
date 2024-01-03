@@ -1,12 +1,37 @@
 import numpy as np
 
 class PrivateBinner:
+    """
+    This class implements a private binner. It takes a feature matrix as input and outputs a matrix of bincounts.
+    Parameters
+    ----------
+        bins : numpy array
+            The bins to use for binning the data.
+        privacy_budget : float
+            The privacy budget to use.
+        diff_privacy : bool
+            Whether to use differential privacy or not.
+    """
+
     def __init__(self, bins, privacy_budget=1, diff_privacy=True):
         self.bins = bins
         self.privacy_budget = privacy_budget
         self.diff_privacy = diff_privacy
 
     def fit_transform(self, X):
+        """
+        Fits the binner to the data and transforms the data.
+        
+        Parameters
+        ----------
+            X : numpy array
+                The data to bin.
+
+        Returns
+        -------
+            X_binned : numpy array
+                The binned data.
+        """
         # Set X_binned to a matrix with number of bins as rows and number of features as columns
         num_bins = self.bins.shape[0] - 1
         if X.ndim == 1:
@@ -29,6 +54,8 @@ class PrivateBinner:
                 X_binned[:, i] = bincounts
         return np.round(X_binned).astype(int)
     
+
+
 # test code
 if __name__ == "__main__":
     from sklearn.datasets import load_iris
