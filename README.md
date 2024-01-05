@@ -26,6 +26,10 @@ To reproduce the experiments from the report, navigate to the `experiments` dire
 
 This project is the result of a semester project and is not actively maintained. However, if you find any bugs or have any suggestions for improvement, feel free to open an issue or submit a pull request.
 
-## License
+## Installation
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+To install the required dependencies, run the following command:
+
+```bash
+pip install 'git+https://github.com/hgubler/federated-private-trees'
+```
