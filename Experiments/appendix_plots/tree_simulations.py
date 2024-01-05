@@ -141,6 +141,13 @@ print('done with low correlation setting!')
 
 ####################################### High correlation setting #######################################
 n_samples = 1000
+party_idx = []
+n_parties = 5
+sample_per_party = n_samples / n_parties
+if n_samples % n_parties != 0:
+    raise ValueError('n_samples must be divisible by n_parties')
+for i in range(n_parties):
+    party_idx.append(np.arange(i * sample_per_party, (i + 1) * sample_per_party, dtype=int))
 rho_1 = 0.9
 rho_2 = 0.9
 
