@@ -10,7 +10,7 @@ setup(
     install_requires=[
         'numpy'
     ],
-    #classifiers=[
-    #    'Programming Language :: Python :: 3'
-    #],
+    classifiers=[
+        'Programming Language :: Python :: 3'
+    ]
 )
