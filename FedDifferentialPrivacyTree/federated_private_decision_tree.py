@@ -1,5 +1,5 @@
 import numpy as np
-from algorithms.private_binner import PrivateBinner
+from FedDifferentialPrivacyTree.private_binner import PrivateBinner
 
 class FederatedPrivateDecisionTree:
     """

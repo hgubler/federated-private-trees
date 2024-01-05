@@ -1,7 +1,7 @@
 import sys
 sys.path.append('') # Adds higher directory to python modules path
-from algorithms.federated_private_decision_tree import FederatedPrivateDecisionTree
-from algorithms.decision_tree import DecisionTree
+from FedDifferentialPrivacyTree.federated_private_decision_tree import FederatedPrivateDecisionTree
+from FedDifferentialPrivacyTree.decision_tree import DecisionTree
 from experiments.data.simulate_data import SimulateData
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
