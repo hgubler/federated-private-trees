@@ -40,5 +40,5 @@ tree = FDPT(max_depth,
             save_budget,
             party_idx)
 tree.fit(X_train, y_train)   
-tree.predict(X_test)     
+predictions = tree.predict(X_test)     
 ```
