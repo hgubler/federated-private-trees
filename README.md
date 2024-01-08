@@ -33,7 +33,8 @@ The algorithm can be run as follows, for suitable values of the parameters and d
 from FedDifferentialPrivacyTree.federated_private_decision_tree import FederatedPrivateDecisionTree as FPDT
 tree = FDPT(max_depth, 
             min_samples_leaf, 
-            num_bins, privacy_budget, 
+            num_bins, 
+            privacy_budget, 
             leaf_privacy_proportion, 
             bounds_privacy_proportion, 
             save_budget,
